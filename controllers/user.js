@@ -5,8 +5,8 @@ exports.getUsers=(req,res,next)=>{
 }
 
 exports.setUser=(req,res,next)=>{
-    console.log("add user called")
-    console.log(req.body);
+    // console.log("add user called")
+    // console.log(req.body);
     const name=req.body.name;
     const email=req.body.email
     const password=req.body.password
@@ -18,8 +18,8 @@ exports.setUser=(req,res,next)=>{
     {res.status(200).json(result)
         console.log(result)
     return res}).catch((err)=>{
-        res.status(500).json([])
-        console.log(err)})
+        err.errors[0].type==='unique violation'?res.status(200).json(err.errors[0].type):res.status(500).json(err)
+        console.log(err.errors[0].type)})
 }
 
 exports.deleteUser=(req,res,next)=>{
