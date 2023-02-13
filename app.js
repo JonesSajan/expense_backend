@@ -9,6 +9,8 @@ const sequelize = require('./util/database');
 const app = express();
 
 const expenseRoutes = require('./routes/expense');
+const userRoutes = require('./routes/user');
+
 
 app.use(bodyParser.json({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -16,6 +18,7 @@ app.use(express.json());
 app.use(cors());
 
 app.use('/expense', expenseRoutes);
+app.use('/user', userRoutes);
 
 
 sequelize
@@ -27,3 +30,4 @@ sequelize
   .catch(err => {
     console.log(err);
   });
+
