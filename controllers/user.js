@@ -19,7 +19,7 @@ exports.setUser=(req,res,next)=>{
         console.log(result)
     return res}).catch((err)=>{
         err.errors[0].type==='unique violation'?res.status(200).json(err.errors[0].type):res.status(500).json(err)
-        console.log(err.errors[0].type)})
+        console.log(err)})
 }
 
 exports.deleteUser=(req,res,next)=>{
@@ -34,9 +34,23 @@ exports.deleteUser=(req,res,next)=>{
       }).catch((err)=>{res.status(500).json([])})
 
 
-    // User.findById(id).then((user)=>{return user.destroy()}).then(result => {
-    //     res.status(200).json(result)
-    //     console.log('DESTROYED PRODUCT');
-    
-    //   }).catch((err)=>{res.status(500).json([])})
 }
+
+exports.loginUser = async (req, res, next) => {
+    try {
+        console.log("GET BY ID CALLED");
+        email = req.body.email;
+        password = req.body.password;
+      result = await User.findAll({ where: { email: email } });
+      console.log(result[0].dataValues.password)
+      if(result){
+        result[0].dataValues.password==password?res.status(200).json("Login Successfull"):res.status(200).json("incorrect password");
+      }
+      
+    } catch (err) {
+      console.log(err);
+      res.status(200).json("User don't exist")
+    }
+  };
+
+
