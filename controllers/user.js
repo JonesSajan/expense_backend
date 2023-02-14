@@ -1,4 +1,6 @@
 const User =require('../models/user')
+const bcrypt=require('bcrypt')
+const saltrounds=10;
 
 exports.getUsers=(req,res,next)=>{
     User.findAll().then((result)=>res.status(200).json(result)).catch((err)=>{res.status(500).json([])})
@@ -10,16 +12,20 @@ exports.setUser=(req,res,next)=>{
     const name=req.body.name;
     const email=req.body.email
     const password=req.body.password
+ bcrypt.hash(password,saltrounds,(err,hash)=>{
+
     User.create({
         name:name,
         email:email,
-        password:password
+        password:hash
     }).then((result)=>
     {res.status(200).json(result)
         console.log(result)
     return res}).catch((err)=>{
         err.errors[0].type==='unique violation'?res.status(200).json(err.errors[0].type):res.status(500).json(err)
         console.log(err)})
+    })
+
 }
 
 exports.deleteUser=(req,res,next)=>{
@@ -44,12 +50,13 @@ exports.loginUser = async (req, res, next) => {
       result = await User.findAll({ where: { email: email } });
       console.log(result[0].dataValues.password)
       if(result){
-        result[0].dataValues.password==password?res.status(200).json("Login Successfull"):res.status(200).json("incorrect password");
+       const response= await bcrypt.compare(password,result[0].dataValues.password) ;
+       response?res.status(200).json("Login Successfull"):res.status(200).json("incorrect password");
       }
       
     } catch (err) {
       console.log(err);
-      res.status(200).json("User don't exist")
+      res.status(404).json({success:false,message:"User don't exist"})
     }
   };
 
