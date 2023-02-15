@@ -2,7 +2,7 @@ const Expense = require("../models/expense");
 
 exports.getExpenses = async (req, res, next) => {
   try {
-    result = await Expense.findAll();
+    result = await Expense.findAll({where:{userid:req.user.id}});
     res.status(200).json(result);
   } catch (err) {
     console.log(err);
@@ -30,10 +30,13 @@ exports.setExpense = async (req, res, next) => {
     const expense_amount = req.body.expense_amount;
     const description = req.body.description;
     const category = req.body.category;
+    const userid=req.body.id
+    console.log("inside setExpense",req.body.id)
     result = await Expense.create({
       expense_amount: expense_amount,
       description: description,
       category: category,
+      userId:userid
     });
     res.status(200).json(result);
     console.log(result);
