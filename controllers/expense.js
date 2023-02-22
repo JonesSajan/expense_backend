@@ -30,8 +30,8 @@ exports.setExpense = async (req, res, next) => {
     const expense_amount = req.body.expense_amount;
     const description = req.body.description;
     const category = req.body.category;
-    const userid=req.body.id
-    console.log("inside setExpense",req.body.id)
+    const userid=req.user.id
+    console.log("inside setExpense",req.user.id)
     result = await Expense.create({
       expense_amount: expense_amount,
       description: description,
@@ -54,7 +54,7 @@ exports.deleteExpense = async (req, res, next) => {
     console.log(req.body);
     id = req.body.id;
     console.log(id);
-    result = await Expense.destroy({ where: { id: id } });
+    result = await Expense.destroy({ where: { id: id ,userId:req.user.id} });
 
     res.status(200).json(result);
     console.log("DESTROYED Expense");

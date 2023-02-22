@@ -58,12 +58,12 @@ exports.loginUser = async (req, res, next) => {
       if(result){
        const response= await bcrypt.compare(password,result[0].dataValues.password) ;
     //    console.log(result[0].name);    
-       response?res.status(200).json({msg:"Login Successfull",token:generateToken(result[0].id,result[0].name)}):res.status(200).json("incorrect password");
+       response?res.status(200).json({msg:"Login Successfull",token:generateToken(result[0].id,result[0].name)}):res.status(401).json("incorrect password");
       }
       
     } catch (err) {
       console.log(err);
-      res.status(201).send({msg:"User don't exist"})
+      res.status(404).send({msg:"User don't exist"})
     }
     
 
