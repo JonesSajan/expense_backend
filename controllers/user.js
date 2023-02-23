@@ -58,7 +58,7 @@ exports.loginUser = async (req, res, next) => {
       if(result){
        const response= await bcrypt.compare(password,result[0].dataValues.password) ;
     //    console.log(result[0].name);    
-       response?res.status(200).json({msg:"Login Successfull",premium:result[0].ispremiumuser,token:generateToken(result[0].id,result[0].name,result[0].ispremium)}):res.status(401).json("incorrect password");
+       response?res.status(200).json({msg:"Login Successfull",premium:result[0].ispremiumuser,token:generateToken(result[0].id,result[0].name,result[0].ispremiumuser)}):res.status(401).json("incorrect password");
       }
       
     } catch (err) {
