@@ -11,6 +11,7 @@ const user = sequelize.define('user', {
   name: { type: Sequelize.STRING, allowNull: false },
   email: { type: Sequelize.STRING, allowNull: false,unique: true },
   password: { type: Sequelize.STRING, allowNull: false },
+  total_amount: { type: Sequelize.INTEGER,defaultValue:0 },
   ispremiumuser:Sequelize.BOOLEAN
 });
 

@@ -38,6 +38,10 @@ exports.setExpense = async (req, res, next) => {
       category: category,
       userId:userid
     });
+    console.log('////////////////////////////////////////////////',req.user.total_amount,"/////////////////////",req.body.expense_amount)
+    const total_amount =parseInt(req.user.total_amount) + parseInt(req.body.expense_amount)
+    console.log("*************************************",total_amount)
+    await req.user.update({total_amount:total_amount},{where:{id:req.user.id}})
     res.status(200).json(result);
     console.log(result);
     return res;
