@@ -1,4 +1,5 @@
 const Expense = require("../models/expense");
+const sequelize =require('../util/database')
 
 exports.getExpenses = async (req, res, next) => {
   try {
@@ -25,44 +26,64 @@ exports.getExpenseById = async (req, res, next) => {
   
 
 exports.setExpense = async (req, res, next) => {
+  const t = await sequelize.transaction()
+
   try {
-    console.log(req.body);
     const expense_amount = req.body.expense_amount;
     const description = req.body.description;
     const category = req.body.category;
     const userid=req.user.id
-    console.log("inside setExpense",req.user.id)
+
+
     result = await Expense.create({
       expense_amount: expense_amount,
       description: description,
       category: category,
       userId:userid
-    });
-    console.log('////////////////////////////////////////////////',req.user.total_amount,"/////////////////////",req.body.expense_amount)
+    },{transaction:t});
+
+
     const total_amount =parseInt(req.user.total_amount) + parseInt(req.body.expense_amount)
-    console.log("*************************************",total_amount)
-    await req.user.update({total_amount:total_amount},{where:{id:req.user.id}})
+    result2 = await req.user.update({total_amount:total_amount},{where:{id:req.user.id},transaction:t})
+    result2? await t.commit(): await t.rollback()
     res.status(200).json(result);
     console.log(result);
     return res;
   } catch (err) {
+    console.log(err); 
+    await t.rollback()
     res.status(500).json([]);
-    console.log(err);
   }
 };
 
 exports.deleteExpense = async (req, res, next) => {
+  const t = await sequelize.transaction()
+
   try {
     console.log("DELETE CALLED");
+
 
     console.log(req.body);
     id = req.body.id;
     console.log(id);
-    result = await Expense.destroy({ where: { id: id ,userId:req.user.id} });
+    const expense_amount= await Expense.findAll({attributes:['expense_amount'], where: { id: id ,userId:req.user.id},transaction:t })
+    console.log("///////////////////////////////////////////////////",expense_amount[0].dataValues.expense_amount,req.user.total_amount)
+    
+    const total_amount =  parseInt(req.user.total_amount) -   parseInt(expense_amount[0].dataValues.expense_amount)
+    console.log("*********************************************************",total_amount)
+    result = await Expense.destroy({ where: { id: id ,userId:req.user.id},transaction:t });
+
+
+    result2 = await req.user.update({total_amount:total_amount},{where:{id:req.user.id},transaction:t})
+
+    result2? await t.commit(): await t.rollback()
+
+
 
     res.status(200).json(result);
     console.log("DESTROYED Expense");
   } catch (err) {
+    await t.rollback()
     res.status(500).json([]);
   }
 };

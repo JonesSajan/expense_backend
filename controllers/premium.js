@@ -5,7 +5,7 @@ const sequelize = require("../util/database");
 
 exports.getLeaderboard = async (req, res, next) => {
     try {
-      const result = await User.findAll()
+      const result = await User.findAll({attributes:['name','total_amount']})
       console.log("//////////////////////////////////////////",result)
       res.status(200).json(result);
     } catch (err) {
