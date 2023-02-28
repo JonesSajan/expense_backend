@@ -1,5 +1,65 @@
 const Expense = require("../models/expense");
-const sequelize =require('../util/database')
+const sequelize =require('../util/database');
+const AWS = require('aws-sdk')
+
+const uploadToS3 = async(data,filename)=>{
+  console.log("//////////////////////////////////////////////////////////////////////uploadToS3 called")
+  const bucketName='expensetracker-app'
+  const accessKey = process.env.IAM_ACCESS_KEY
+  const secretAcessKey = process.env.IAM_SECRET_ACCESS_KEY
+
+  let s3bucket= new AWS.S3({
+    accessKeyId:accessKey,
+    secretAccessKey:secretAcessKey,
+  })
+
+  var params = {
+    Bucket:bucketName,
+    Key:filename,
+    Body:data,
+    ACL:'public-read'
+  }
+
+  console.log("//////////////////////////////////////////////////////////////////////",params,bucketName,accessKey,"///676798////?????????",secretAcessKey)
+
+  return new Promise((resolve,reject)=>{
+    s3bucket.upload(params,(err,res)=>{
+      console.log("******************************1***********************")
+      if(err){
+        console.log("******************************2***********************")
+  
+        console.log("something went wrong",err)
+        reject(err);
+      }
+      else{
+        console.log("******************************3***********************")
+  
+        console.log("success->",res.Location)
+        resolve(res.Location);
+      }
+    })
+  })
+
+
+
+}
+
+
+exports.downloadExpenses=async (req,res)=>{
+  try{
+  console.log("///////////////////////////////////////////////////////////////////download expense called")
+  const expenses = await req.user.getExpenses()
+  console.log("//////////////////////////////////////////////////",expenses);
+  const stringified_expenses = JSON.stringify(expenses);
+  const filename = `expense${req.user.id}/${new Date()}.txt`
+  const fileUrl = await uploadToS3(stringified_expenses,filename)
+  res.status(200).json({fileUrl,sucess:true})
+}catch(err){
+  console.log("err from dowloadExpense ",err)
+  res.status(500).json({fileUrl:"",sucess:false})
+
+}
+}
 
 exports.getExpenses = async (req, res, next) => {
   try {
