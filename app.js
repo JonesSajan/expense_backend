@@ -5,6 +5,9 @@ const Expense = require("./models/expense");
 const User = require("./models/user");
 const Order =require('./models/order')
 const Forgotpassword = require('./models/forgotpassword');
+const helmet = require('helmet')
+const morgan = require('morgan')
+const fs = require('fs')
 
 
 const express = require('express');
@@ -20,6 +23,10 @@ const userRoutes = require('./routes/user');
 const purchaseRoutes = require('./routes/purchase');
 const premiumRoutes = require('./routes/premium')
 const resetPasswordRoutes = require('./routes/resetpassword')
+const accessLogStream = fs.createWriteStream(path.join(__dirname,'access.log'),{flags:'a'})
+app.use(helmet())
+app.use(morgan('combined',{stream:accessLogStream}))
+
 
 
 app.use(bodyParser.json({ extended: false }));
@@ -50,7 +57,7 @@ sequelize
   .sync()
   .then(result => {
     // console.log(result);
-    app.listen(3000);
+    app.listen(process.env.PORT || 3000);
   })
   .catch(err => {
     console.log(err);
