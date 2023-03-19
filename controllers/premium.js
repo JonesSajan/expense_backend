@@ -1,12 +1,9 @@
-const Expense = require("../models/expense");
-const User =require('../models/user')
-const sequelize = require("../util/database");
+const {User} =require('../models/user')
 
 
 exports.getLeaderboard = async (req, res, next) => {
     try {
-      const result = await User.findAll({attributes:['name','total_amount']})
-      console.log("//////////////////////////////////////////",result)
+      const result = await User.find().sort({total_amount:-1})
       res.status(200).json(result);
     } catch (err) {
       console.log(err);

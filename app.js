@@ -1,19 +1,16 @@
 const path = require('path');
 const cors = require('cors')
 const dotenv = require('dotenv');
-const Expense = require("./models/expense");
-const User = require("./models/user");
-const Order =require('./models/order')
-const Forgotpassword = require('./models/forgotpassword');
 const helmet = require('helmet')
 const morgan = require('morgan')
 const fs = require('fs')
+const mongoConnect = require("./util/database").mongoConnect
+
 
 
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const sequelize = require('./util/database');
 
 const app = express();
 dotenv.config();
@@ -35,6 +32,8 @@ app.use(express.json());
 app.use(cors( {
   origin: '*' 
 }));
+mongoConnect();
+
 
 app.use('/expense', expenseRoutes);
 app.use('/user', userRoutes);
@@ -43,23 +42,10 @@ app.use('/premium', premiumRoutes);
 app.use('/password', resetPasswordRoutes);
 
 
-User.hasMany(Expense);
-Expense.belongsTo(User);
-
-User.hasMany(Order);
-Order.belongsTo(User);
-
-User.hasMany(Forgotpassword);
-Forgotpassword.belongsTo(User);
+var port = process.env.PORT || 3000;
 
 
-sequelize
-  .sync()
-  .then(result => {
-    // console.log(result);
-    app.listen(process.env.PORT || 3000);
-  })
-  .catch(err => {
-    console.log(err);
-  });
+  app.listen(port, () => {
+  console.log(`Server started on port ${port}.`);
+});
 

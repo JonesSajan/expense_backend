@@ -1,15 +1,15 @@
 const uuid = require("uuid");
 const Sib = require("sib-api-v3-sdk");
 const bcrypt = require("bcrypt");
+const {User} = require("../models/user");
+const {Forgotpassword} = require("../models/forgotpassword");
 
-const User = require("../models/user");
-const Forgotpassword = require("../models/forgotpassword");
+
+
 
 const forgotpassword = async (req, res) => {
   try {
-    console.log(
-      "///////////////////////////////////////////////////////called"
-    );
+
     const client = Sib.ApiClient.instance;
 
     const apiKey = client.authentications["api-key"];
@@ -25,19 +25,26 @@ const forgotpassword = async (req, res) => {
     ];
 
     const { email } = req.body;
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ email:email });
     if (user) {
       const id = uuid.v4();
-      user.createForgotpassword({ id, active: true }).catch((err) => {
-        throw new Error(err);
-      });
+      result = await Forgotpassword.create(
+        {
+          active: true ,
+          userId: user._id,
+        },
+      );
+      // user.createForgotpassword({ id, active: true }).catch((err) => {
+      //   throw new Error(err);
+      // });
+
 
       tranEmailApi
         .sendTransacEmail({
           sender,
           to: receivers,
           subject: "Email Verification",
-          htmlContent: `<a href="http://localhost:3000/password/resetpassword/${id}">Reset password</a>`,
+          htmlContent: `<a href="http://localhost:3000/password/resetpassword/${result._id}">Reset password</a>`,
         })
         .then((response) => {
           console.log(response);
@@ -60,10 +67,14 @@ const forgotpassword = async (req, res) => {
 };
 
 const resetpassword = (req, res) => {
-  const id = req.params.id;
-  Forgotpassword.findOne({ where: { id } }).then((forgotpasswordrequest) => {
+  // console.log("resetpassword called")
+  const id =req.params.id;
+  console.log(typeof id,id)
+  Forgotpassword.findOne({_id: id }).then((forgotpasswordrequest) => {
+    console.log(forgotpasswordrequest)
     if (forgotpasswordrequest) {
-      forgotpasswordrequest.update({ active: false });
+      forgotpasswordrequest.active= false ;
+      forgotpasswordrequest.save();
       res.status(200).send(`<html>
                                     <script>
                                         function formsubmitted(e){
@@ -100,16 +111,16 @@ const resetpassword = (req, res) => {
                                 </html>`);
       res.end();
     }
-  });
+  }).catch(err=>console.log(err));
 };
 
 const updatepassword = (req, res) => {
   try {
     const { newpassword } = req.query;
     const { resetpasswordid } = req.params;
-    Forgotpassword.findOne({ where: { id: resetpasswordid } }).then(
+    Forgotpassword.findOne({ _id: resetpasswordid } ).then(
       (resetpasswordrequest) => {
-        User.findOne({ where: { id: resetpasswordrequest.userId } }).then(
+        User.findOne({ _id: resetpasswordrequest.userId}).then(
           (user) => {
             // console.log('userDetails', user)
             if (user) {
@@ -127,7 +138,8 @@ const updatepassword = (req, res) => {
                     console.log(err);
                     throw new Error(err);
                   }
-                  user.update({ password: hash }).then(() => {
+                  user.password= hash
+                  user.save().then(() => {
                     res
                       .status(201)
                       .json({ message: "Successfuly update the new password" });

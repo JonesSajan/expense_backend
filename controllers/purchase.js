@@ -1,5 +1,5 @@
 const razorpay = require('razorpay');
-const Order = require('../models/order')
+const {Order} = require('../models/order')
 const jwt=require('jsonwebtoken')
 
 const generateToken=(id,name,ispremium)=>{
@@ -20,7 +20,7 @@ exports.premium = async(req,res)=>{
                 console.log(err)
             }
 
-             req.user.createOrder({orderid:order.id,status:"Pending"})
+             Order.create({orderid:order.id,status:"Pending",userId:req.user._id})
             return res.status(201).json({order,key_id:rzp.key_id})
         })
     }catch(err){
@@ -33,11 +33,13 @@ exports.updateTransaction = async(req,res)=>{
     try{
         const userId = req.user.id;
         const { payment_id, order_id} = req.body;
-        const order = await Order.findOne({where:{orderid:order_id}})
-        const p1= order.update({paymentid: payment_id, status:"Success"})
-        const p2= req.user.update({ispremiumuser: true})
+        const order = await Order.findOne({orderid:order_id})
+        order.paymentid= payment_id 
+        order.status="Success"
+        const p1= order.save()
+        req.user.ispremiumuser= true
+        const p2= req.user.save()
         Promise.all([p1,p2]).then(()=>{
-            console.log("///////////////////////////////////////////////////////",req.user)
         return res.status(202).json({success:true,message:"transaction successfull",token:generateToken(req.user.id,req.user.name,req.user.ispremiumuser)});
    }).catch((error ) => {
             throw new Error(error)
